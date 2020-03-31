@@ -8,15 +8,13 @@ const dbName = "data";
 const collectionName = "movies";
 const app = express();
 const url = require('url')
-const mongoose = require('mongoose');
 var express_graphql = require('express-graphql');
-const Schema = mongoose.Schema;
 var { buildSchema } = require('graphql');
 const imdb = require('./imdb');
 const DENZEL_IMDB_ID = 'nm0000243';
 const METASCORE = 77;
 module.exports = app;
-const { makeExecutableSchema } = require('graphql-tools');
+
 app.use(require('body-parser').json());
 app.use(cors());
 app.use(helmet());
@@ -134,6 +132,7 @@ type Movie {
   review : String
 }
 `);
+//Resolver functions
 var fetchid = function(args){
 var temp = args.id
 var res = dbCollection.find({ $query: {id: temp} }).toArray();
@@ -149,7 +148,7 @@ var res = await dbCollection.find({ $query: {id: args.id} }).toArray();
 console.log(res)
 return res;
 }
-// END 
+
 // Root resolver
 const root = {
   movies:()=> dbCollection.aggregate([{ $match: { metascore:{ $gte:70} } },{ $sample: { size: 1 } }]).toArray(),
@@ -157,7 +156,7 @@ const root = {
   search:searchmovie,
   datereview:save
 }
-//END 
+
 //SERVER 
 app.use('/graphql', express_graphql({
     schema: schema,
@@ -180,106 +179,3 @@ function getRandomInt(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
 }
-/*
-//GRAPHQL API
-
-// GraphQL schema
-var schema = buildSchema(`
-type Query {
-  movies: [Movie]
-  moviesid(id: Int!): [Movie]
-  movie: Movie
-},
-type Movie {
-  _id : Int
-  link: String
-  id : String
-  metascore: Int
-  poster : String
-  rating : Int
-  synopsis: String
-  title: String
-  votes:Int
-  year: Int
-}
-`);
-var test = function(args){
-var temp = args.id
-var res = dbCollection.findOne({ $query: {id: temp} }).toArray();
-return res;
-}
-// END 
-// Root resolver
-const root = {
-  movies:()=> dbCollection.aggregate([{ $match: { metascore:{ $gte:70} } },{ $sample: { size: 1 } }]).toArray(),
-  moviesid:(parent,args,context,info)=> dbCollection.findOne({ $query: {id: args.id} }).toArray()
-
-};
-//END 
-//SERVER 
-app.use('/graphql', express_graphql({
-    schema: schema,
-    rootValue:root,
-    graphiql: true
-}));
-//END 
-
-
-//END OF GRAPHQL API
-*/
-
-/*
-mongoose.connect('mongodb+srv://denzelUser:denzelaspi-rox@cluster0-2fmcw.mongodb.net/test?retryWrites=true&w=majority', { promiseLibrary: require('bluebird'), useNewUrlParser: true })
-  .then(() =>  console.log('connection successful'))
-  .catch((err) => console.error(err));
-
-const movieSchema = new Schema({
-  link: String,
-  metascore: Number,
-  synopsis: String,
-  title: String,
-  year: Number,
-  
-});
-const MovieModel = mongoose.model('Movie', movieSchema);
-const {
-    GraphQLInt,
-    GraphQLID,
-    GraphQLString,
-    GraphQLList,
-    GraphQLNonNull,
-    GraphQLObjectType,
-    GraphQLSchema
-} = require("graphql");
-const MovieType = new GraphQLObjectType({
-    name: "Movie",
-    fields: {
-        link: { type: GraphQLString },
-        metascore: { type: GraphQLInt },
-        synopsis: { type: GraphQLString },
-        title: { type: GraphQLString },
-        year: { type: GraphQLInt }
-    }
-});
-
-const schema = new GraphQLSchema({
-    query: new GraphQLObjectType({
-        name: "Query",
-        fields: {
-            movie: {
-                type: GraphQLList(MovieType),
-                resolve: (root, args, context, info) => {
-                    return MovieModel.find().exec();
-                }
-                    }
-                }
-              })
-  });
-
-
-
-app.use("/graphql", express_graphql({
-    schema: schema,
-    graphiql: true
-}));
-*/
